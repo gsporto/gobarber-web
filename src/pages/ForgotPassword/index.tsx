@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { FiLogIn, FiMail } from 'react-icons/fi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
@@ -14,6 +14,7 @@ import Button from '../../components/Button';
 import logoImg from '../../assets/logo.svg';
 
 import { Container, Background, Content, AnimationContainer } from './styles';
+import api from '../../services/api';
 
 interface ForgotPasswordFormData {
   email: string;
@@ -21,6 +22,7 @@ interface ForgotPasswordFormData {
 }
 
 const ForgotPassword: React.FC = () => {
+  const [loading, setLoading] = useState(false);
   const formRef = useRef<FormHandles>(null);
 
   const { addToast } = useToast();
@@ -29,6 +31,8 @@ const ForgotPassword: React.FC = () => {
   const handleSubmit = useCallback(
     async (data: ForgotPasswordFormData) => {
       try {
+        setLoading(true);
+
         formRef.current?.setErrors({});
         const schema = Yup.object().shape({
           email: Yup.string()
@@ -38,9 +42,14 @@ const ForgotPassword: React.FC = () => {
 
         await schema.validate(data, { abortEarly: false });
 
-        // Todo Recuperação de senha;
+        await api.post('/password/forgot', { email: data.email });
 
-        // history.push('/dashboard');
+        addToast({
+          type: 'success',
+          title: 'E-mail de recuperação enviado.',
+          description:
+            'Enviamos um e-mail para confirmar a recuperação da senha, chegue sua caixa de entrada.',
+        });
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
@@ -52,6 +61,8 @@ const ForgotPassword: React.FC = () => {
           title: 'Erro na recuperação de senha',
           description: 'Ocorreu um erro ao recuperar a senha, tente novamente.',
         });
+      } finally {
+        setLoading(false);
       }
     },
     [addToast],
@@ -72,7 +83,9 @@ const ForgotPassword: React.FC = () => {
               placeholder="E-mail"
             />
 
-            <Button type="submit">Recuperar</Button>
+            <Button loading={loading} type="submit">
+              Recuperar
+            </Button>
           </Form>
 
           <Link to="/">

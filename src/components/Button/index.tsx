@@ -6,8 +6,13 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
 };
 
-const Input: React.FC<ButtonProps> = ({ children, loading, ...props }) => (
-  <Container type="button" disabled={loading} {...props}>
+const Input: React.FC<ButtonProps> = ({
+  children,
+  loading,
+  disabled,
+  ...props
+}) => (
+  <Container type="button" disabled={disabled || loading} {...props}>
     {loading ? 'Aguarde...' : children}
   </Container>
 );
